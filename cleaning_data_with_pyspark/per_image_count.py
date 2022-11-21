@@ -1,0 +1,25 @@
+'''
+Per image count
+Your next task in building a data pipeline for this dataset is to create a few analysis oriented columns. 
+You've been asked to calculate the number of dogs found in each image based on your dog_list column created earlier. 
+You have also created the DogType which will allow better parsing of the data within some of the data columns.
+The joined_df is available as you last defined it, and the DogType StructType is defined. pyspark.sql.functions is available under the F alias.
+
+'''
+
+# Create a function to return the number and type of dogs as a tuple
+def dogParse(doglist):
+  dogs = []
+  for dog in doglist:
+    (breed, start_x, start_y, end_x, end_y) = dog.split(',')
+    dogs.append((breed, int(start_x), int(start_y), int(end_x), int(end_y)))
+  return dogs
+
+# Create a UDF
+udfDogParse = F.udf(dogParse, ArrayType(DogType))
+
+# Use the UDF to list of dogs and drop the old column
+joined_df = joined_df.withColumn('dogs', udfDogParse('dog_list')).drop('dog_list')
+
+# Show the number of dogs in the first 10 rows
+joined_df.select(F.size('dogs')).show(10)
